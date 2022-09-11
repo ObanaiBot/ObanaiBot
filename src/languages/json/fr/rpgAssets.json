@@ -206,7 +206,7 @@
             }
         }
     },
-    "grimoires": {
+    "enchantedGrimoires": {
         "types": {
             "temporaryGrimoire": "Grimoire temporaire",
             "permanentGrimoire": "Grimoire permanent",
@@ -463,6 +463,30 @@
                     ]
                 }
             }
+        }
+    },
+    "weapons": {
+        "types": {
+            "poisonousKatana": "Katana Empoisonné",
+            "spikedFlailWithAxe": "Fléau à pointes & Hache",
+            "flexibleKatana": "Katana Flexible",
+            "whippingKatana": "Katana-Fouet",
+            "fleshyDemonicKatana": "Katana Démoniaque Charnu",
+            "twinSword": "Épées Jumelles",
+            "doubleShredderKatanas": "Doubles Katanas Déchiqueteurs",
+            "katana": "Katana"
+        },
+        "rarities": {
+            "0": "Commun",
+            "1": "Rare",
+            "2": "Très Rare",
+            "3": "Précieux",
+            "4": "Épique",
+            "5": "Mystique",
+            "6": "Légendaire",
+            "7": "Exceptionnel",
+            "8": "Enchanté",
+            "9": "Démoniaque"
         }
     }
 }
