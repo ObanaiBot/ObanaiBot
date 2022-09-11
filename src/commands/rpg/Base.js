@@ -2,14 +2,7 @@ const Command = require("../../base/Command");
 const {
     EmbedBuilder,
     ActionRowBuilder,
-    SelectMenuBuilder,
     ButtonBuilder,
-    inlineCode,
-    ModalBuilder,
-    TextInputStyle,
-    TextInputBuilder,
-    escapeMarkdown,
-    User,
 } = require("discord.js");
 const Nav = require("../../base/Navigation");
 
@@ -53,39 +46,25 @@ class Base extends Command {
         userId = (await this.client.getUser(userId, user)).userId;
 
         const userPDB = await this.client.playerDb.load(userId);
-        const userIDB = await this.client.inventoryDb.get(userId);
-        const userADB = await this.client.activityDb.get(userId);
-        const userMDB = await this.client.mapDb.get(userId);
+        const userIDB = await this.client.inventoryDb.load(userId);
+        const userADB = await this.client.activityDb.load(userId);
+        const userMDB = await this.client.mapDb.load(userId);
+        console.log(userMDB);
 
-        console.log(this.client.RPGAssetsManager.getPlayerLevel(userPDB.exp));
-
-        let userStatsObject = {};
-        for (const statKey in userPDB.statsLevel) {
-            userStatsObject[statKey] = `${this.consts.emojis.rpg.stats[statKey]} `
-                + `» **${this.lang.rpgAssets.aptitudes[statKey]} | `
-                + `\`${this.client.util.intRender(userPDB.finalStats[statKey])}\`**\n`
-                + `*(${this.lang.strings.level} ${userPDB.statsLevel[statKey]}) **${userPDB.stats[statKey]}***`;
+        let userstatisticsObject = {};
+        for (const statKey in userPDB.statisticsLevel) {
+            userstatisticsObject[statKey] = `${this.consts.emojis.rpg.statistics[statKey]} `
+                + `» **${this.lang.rpgAssets.statistics[statKey]} | `
+                + `\`${this.client.util.intRender(userPDB.finalstatistics[statKey])}\`**\n`
+                + `*(${this.lang.strings.level} ${userPDB.statisticsLevel[statKey]}) **${userPDB.statistics[statKey]}***`;
 
             if (userPDB.grimBoosts[statKey][0] > 0) {
-                userStatsObject[statKey] += ` *+ **${userPDB.grimBoosts[statKey][0]}**`
+                userstatisticsObject[statKey] += ` *+ **${userPDB.grimBoosts[statKey][0]}**`
                     + ` (${userPDB.grimBoosts[statKey][1]}%)`
                     + `${this.consts.emojis.rpg.objects.enchantedGrimoire}*`;
             }
-
-            if (statKey in userPDB.catBoosts) {
-                if (userPDB.catBoosts[statKey][0] > 0) {
-                    userStatsObject[statKey] += ` *+ **${userPDB.catBoosts[statKey][0]}**`
-                        + ` (${userPDB.catBoosts[statKey][1]}%)`
-                        + `${this.consts.emojis.rpg.symbols.category}*`;
-                }
-                else {
-                    userStatsObject[statKey] += ` *- **${this.client.util.positive(userPDB.catBoosts[statKey][0])}**`
-                        + ` (${userPDB.catBoosts[statKey][1]}%)`
-                        + `${this.consts.emojis.rpg.symbols.category}*`;
-                }
-            }
         }
-        userStatsObject = Object.values(userStatsObject).join("\n");
+        userstatisticsObject = Object.values(userstatisticsObject).join("\n");
         const userRank = `${this.lang.strings.level}: **${userPDB.level.level}** | `
             + `${this.lang.strings.total_experience}: ⭐ **${this.client.util.intRender(userPDB.exp, " ")}**`
             + `\n${this.lang.strings.level_experience}: ⭐ **`
@@ -93,14 +72,11 @@ class Base extends Command {
             + `**/${this.client.util.intRender(userPDB.level.required, " ")}`;
 
         let userInventoryObjects = {};
-        for (const mat in userIDB.materials) {
-            const matFile = require(`../../elements/materials/${mat}`);
-        }
 
         const playerFields = [
             {
                 name: `» ${this.lang.panels.player.pages["0"].embeds["0"].fields["0"].name} «`,
-                value: `\u200b\n${userStatsObject}`,
+                value: `\u200b\n${userstatisticsObject}`,
                 inline: true,
             },
             {
@@ -120,13 +96,6 @@ class Base extends Command {
             {
                 name: `» ${this.lang.panels.activity.pages["0"].embeds["0"].fields["0"].name} «`,
                 value: "\u200b\nactivity",
-                inline: true,
-            },
-        ];
-        const badgesFields = [
-            {
-                name: `» ${this.lang.panels.badges.pages["0"].embeds["0"].fields["0"].name} «`,
-                value: "\u200b\nbadges",
                 inline: true,
             },
         ];
@@ -173,15 +142,6 @@ class Base extends Command {
                                 .setFields(activityFields),
                         ]),
                 ]),
-            "badges_panel": new Nav.Panel()
-                .setPages([
-                    new Nav.Page()
-                        .setEmbeds([
-                            new EmbedBuilder()
-                                .setTitle(this.lang.panels.badges.pages["0"].embeds["0"].title)
-                                .setFields(badgesFields),
-                        ]),
-                ]),
             "crow_panel": new Nav.Panel()
                 .setPages([
                     new Nav.Page()
@@ -219,14 +179,6 @@ class Base extends Command {
                         .setCustomId("activity_panel")
                         // .setLabel(this.lang.rows.universal.activity_panel)
                         .setEmoji(this.consts.emojis.rpg.symbols.activity)
-                        .setStyle("Secondary"),
-                ),
-            new ActionRowBuilder()
-                .setComponents(
-                    new ButtonBuilder()
-                        .setCustomId("badges_panel")
-                        // .setLabel(this.lang.rows.universal.badges_panel)
-                        .setEmoji(this.consts.emojis.rpg.symbols.badges)
                         .setStyle("Secondary"),
                     new ButtonBuilder()
                         .setCustomId("crow_panel")

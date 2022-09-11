@@ -8,6 +8,8 @@ class RPGMapRegion extends RPGAssetBase {
         this.mapRegionDatas = mapRegionDatas;
         const areasLang = this.lang.json.regions[this.id].areas;
 
+        this.name = this.lang.json.regions[this.id].name;
+
         this.coordinates = { x: this.mapRegionDatas.x, y: this.mapRegionDatas.y };
         this.paths = this.mapRegionDatas.paths;
 
@@ -21,6 +23,10 @@ class RPGMapRegion extends RPGAssetBase {
 
     getArea(id) {
         return this.areas.filter(e => e.id === id)[0];
+    }
+
+    getDistanceTo(region) {
+        return Math.sqrt(Math.pow(this.coordinates.x - region.coordinates.x, 2) + Math.pow(this.coordinates.y - region.coordinates.y, 2));
     }
 }
 

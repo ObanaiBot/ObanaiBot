@@ -1,63 +1,36 @@
-class PlayerDatas {
+const TableDatas = require("./TableDatas");
+
+class PlayerDatas extends TableDatas {
     constructor(client, playerDatas, inventoryDatas) {
-        this.client = client;
-        this.playerDatas = playerDatas;
+        super(client, playerDatas);
+
         this.inventoryDatas = inventoryDatas;
+        this.lang = this.datas.lang;
 
-        this.lang = this.playerDatas.lang;
-
-        this.datas = this.load();
+        this.load();
+        this.overwrite();
     }
 
     load() {
-        for (const stat in this.playerDatas.stats) {
-            if (typeof this.playerDatas.statsLevel === "undefined") this.playerDatas.statsLevel = {};
-            this.playerDatas.statsLevel[stat] = this.playerDatas.stats[stat];
-            this.playerDatas.stats[stat] = this.client.util.round(this.playerDatas.stats[stat] * 10);
+        for (const stat in this.datas.statistics) {
+            this.datas.statistics[stat] = this.client.RPGAssetsManager.getStatistic(this.datas.lang, stat, this.datas.statistics[stat]);
         }
 
-        this.playerDatas.grimBoosts = {
-            strength: [0, 0],
-            defense: [0, 0],
-            agility: [0, 0],
-            speed: [0, 0],
-        };
-        if (this.inventoryDatas.active_grimoire !== null) {
-            const grimoire = this.client.RPGAssetsManager.getGrimoire(this.lang, this.inventoryDatas.active_grimoire);
+        if (this.inventoryDatas.enchantedGrimoire.id !== null) {
+            const grimoire = this.client.RPGAssetsManager.getEnchantedGrimoire(this.lang, this.inventoryDatas.enchantedGrimoire.id);
 
             for (const grimoireEffect of grimoire.effects) {
-                if (grimoireEffect === "statsBoost") {
-                    for (const stat in this.playerDatas.statsLevel) {
-                        this.playerDatas.grimBoosts[stat] = [
-                            this.client.util.round(this.playerDatas.stats[stat] * (grimoireEffect.strength - 1)),
-                            this.client.util.round((grimoireEffect.strength - 1) * 100),
-                        ];
-                    }
-                }
+                if (grimoireEffect !== "statisticsBoost") break;
+                for (const stat in this.datas.statistics) stat.setGrimoireBoost(grimoire.strength);
             }
         }
 
-        this.playerDatas.finalStats = { ...this.playerDatas.stats };
-        for (const stat in this.playerDatas.finalStats) {
-            const sum = this.playerDatas.finalStats[stat] + this.playerDatas.grimBoosts[stat][0];
-            this.playerDatas.finalStats[stat] = this.client.util.round(sum);
-        }
-
-        this.playerDatas.tournamentStats = { ...this.playerDatas.finalStats };
-        for (const stat in this.playerDatas.tournamentStats) {
-            this.playerDatas.tournamentStats[stat] = this.client.util.round(
-                this.client.util.round(this.playerDatas.finalStats[stat] / 30, 0) * 10,
-                0,
-            );
-        }
-
-        this.playerDatas.level = this.client.RPGAssetsManager.getPlayerLevel(this.playerDatas.exp);
-        this.playerDatas.date = `${(this.playerDatas.created / 1000).toFixed(0)}`;
-        this.playerDatas.breath = this.client.RPGAssetsManager.getBreathingStyle(this.playerDatas.lang, this.playerDatas.breath);
-
-        this.client.util.ensureObj(this.playerDatas, this);
-
-        return this.playerDatas;
+        this.datas.level = this.client.RPGAssetsManager.getPlayerLevel(this.datas.exp);
+        this.datas.date = `${(this.datas.created / 1000).toFixed(0)}`;
+        this.datas.breath = this.client.RPGAssetsManager.getBreathingStyle(this.datas.lang, this.datas.breathingStyle);
+        delete this.datas.exp;
+        delete this.datas.created;
+        delete this.datas.breathingStyle;
     }
 }
 
