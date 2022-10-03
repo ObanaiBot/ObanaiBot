@@ -1,5 +1,5 @@
-const SQLiteTable = require("./SQLiteTable");
-const InventoryDatas = require("../subclasses/InventoryDatas");
+const SQLiteTable = require("../../SQLiteTable");
+const InventoryData = require("../dataclasses/InventoryData");
 
 function schema(id) {
     return {
@@ -33,8 +33,13 @@ class InventoryDb extends SQLiteTable {
     }
 
     async load(id) {
-        return new InventoryDatas(this.client, this.get(id), this.client.playerDb.getLang(id));
+        return new InventoryData(this.client, this.get(id), this.client.playerDb.getLang(id));
     }
+
+    addMoney(id, amount) {
+        this.set(id, this.get(id).wallet + amount, "wallet");
+    }
+
 }
 
 module.exports = InventoryDb;

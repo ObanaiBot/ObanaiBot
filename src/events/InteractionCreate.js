@@ -1,20 +1,17 @@
 const Event = require("../base/Event");
-const { EmbedBuilder } = require("discord.js");
 
 class InteractionCreate extends Event {
-    constructor() {
+    constructor(client) {
         super({
             name: "interactionCreate",
             once: false,
-        });
-        this.client = null;
+        }, client);
         this.interaction = null;
     }
 
-    async exe(client, interaction) {
+    async exe(interaction) {
         if (interaction.user.bot) return;
 
-        this.client = client;
         this.interaction = interaction;
 
         if (this.interaction.isChatInputCommand()) {
@@ -48,8 +45,8 @@ class InteractionCreate extends Event {
             const clientPermissionsReady = await cmd.clientPermissionsReady();
             if (!clientPermissionsReady) return;
 
-            const commandPrivateReady = await cmd.commandPrivateReady();
-            if (!commandPrivateReady) return;
+            const authorizationsReady = await cmd.authorizationsReady();
+            if (!authorizationsReady) return;
 
             const clientStatusReady = await cmd.clientStatusReady();
             if (!clientStatusReady) return;
@@ -58,17 +55,21 @@ class InteractionCreate extends Event {
                 return this.interaction.channel.send("Le bot est actuellement surchargé, veuillez réessayer plus tard.");
             }
 
-            this.client.lastChannels.set(this.interaction.user.id, this.interaction.channel);
+            this.client.lastChannelsManager.add(
+                this.interaction.user.id, { key: "main", value: this.interaction.channel },
+            );
             this.client.requestsManager.add(this.interaction.user.id, { key: cmd.infos.name, value: Date.now() });
             try {
                 await cmd.run();
             }
             catch (err) {
+                await this.interaction.reply({ content: ":x: **An error occurred.**" }).catch(this.client.util.catchError);
                 await this.client.throwError(err, "Origin: @InteractionCreate.Command");
             }
             this.client.requestsManager.remove(this.interaction.user.id, cmd.infos.name);
         }
         catch (err) {
+            await this.interaction.reply({ content: ":x: **An error occurred.**" }).catch(this.client.util.catchError);
             await this.client.throwError(err, "Origin: @Event.InteractionCreate");
         }
     }

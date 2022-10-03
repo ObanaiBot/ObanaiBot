@@ -1,20 +1,19 @@
-const SQLiteTable = require("./SQLiteTable");
-const PlayerDatas = require("../subclasses/PlayerDatas");
+const SQLiteTable = require("../../SQLiteTable");
+const PlayerData = require("../dataclasses/PlayerData");
 
 function schema(id) {
     return {
         started: false,
         id: id,
         lang: "fr",
+        characterId: "0",
         statistics: {
-            agility: 1,
             defense: 1,
             strength: 1,
-            speed: 1,
         },
-        breathingStyle: "water",
+        breathingStyle: null,
         exp: 0,
-        created: Date.now(),
+        creationDate: Date.now(),
     };
 }
 
@@ -24,7 +23,7 @@ class PlayerDb extends SQLiteTable {
     }
 
     async load(id) {
-        return new PlayerDatas(this.client, this.get(id), this.client.inventoryDb.db.get(id));
+        return new PlayerData(this.client, this.get(id), this.client.inventoryDb.get(id));
     }
 
     getLang(id) {

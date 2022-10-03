@@ -1,5 +1,4 @@
 const Enmap = require("enmap");
-const fs = require("fs");
 
 class SQLiteTableMerger {
     constructor(client, ...tables) {
@@ -29,9 +28,8 @@ class SQLiteTableMerger {
 
             for (const player of dbs.b.array()) {
                 const id = player.id;
-                this.client.inventoryDb.db.set(id, player);
-                this.client.inventoryDb.db.set(id, player.yens, "wallet");
-                this.client.inventoryDb.db.delete(id, "yens");
+                this.client.inventoryDb.ensureInDeep(id);
+                dbs.a.set(id, player.yens, "wallet");
                 const newCrow = {
                     id: player.kasugai_crow || player.kasugaiCrow?.id || "basicCrow",
                     exp: player.kasugai_crow_exp || player.kasugaiCrow?.exp || 0,
@@ -40,21 +38,17 @@ class SQLiteTableMerger {
                 if (newCrow.id === "kasugai_evolved") newCrow.id = "evolvedCrow";
                 if (newCrow.id === "kasugai_proud") newCrow.id = "proudCrow";
                 if (newCrow.id === "kasugai_simple") newCrow.id = "basicCrow";
-                this.client.inventoryDb.db.set(id, newCrow, "kasugaiCrow");
-                this.client.inventoryDb.db.delete(id, "kasugai_crow");
-                this.client.inventoryDb.db.delete(id, "kasugai_crow_exp");
+                dbs.a.set(id, newCrow, "kasugaiCrow");
                 const newGrimoire = {
                     id: player.active_grimoire || player.enchantedGrimoire?.id || null,
                     activeSince: player.active_grimoire_since || player.enchantedGrimoire?.activeSince || 0,
                 };
-                this.client.inventoryDb.db.set(id, newGrimoire, "enchantedGrimoire");
-                this.client.inventoryDb.db.delete(id, "active_grimoire");
-                this.client.inventoryDb.db.delete(id, "active_grimoire_since");
+                dbs.a.set(id, newGrimoire, "enchantedGrimoire");
                 const newWeapon = {
                     id: "katana",
                     rarity: String(player.weapon.rarity) || "3",
                 };
-                this.client.inventoryDb.db.set(id, newWeapon, "weapon");
+                dbs.a.set(id, newWeapon, "weapon");
                 const items = {
                     enchantedGrimoires: player.grimoires,
                     materials: {},
@@ -80,17 +74,7 @@ class SQLiteTableMerger {
                     if (mat === "weapon_model") mat = "weaponBase";
                     items.materials[mat] = player.materials[key];
                 }
-                for (let mat in items.questItems) {
-                    const key = mat;
-                    if (mat === "hime_hair") mat = "himeHairStrand";
-                    if (mat === "pierre_body") mat = "remainsOfPierre";
-                    items.questItems[mat] = player.questItems[key];
-                }
-                this.client.inventoryDb.db.set(id, items, "items");
-                this.client.inventoryDb.db.delete(id, "grimoires");
-                this.client.inventoryDb.db.delete(id, "weapons");
-                this.client.inventoryDb.db.delete(id, "materials");
-                this.client.inventoryDb.db.delete(id, "questItems");
+                dbs.a.set(id, items, "items");
             }
 
             dbs.b.destroy();
@@ -104,13 +88,14 @@ class SQLiteTableMerger {
 
             for (const player of dbs.b.array()) {
                 const id = player.id;
-                this.client.playerDb.db.set(id, player);
-                this.client.playerDb.db.set(id, player.stats, "statistics");
-                this.client.playerDb.db.delete(id, "stats");
-                this.client.playerDb.db.set(id, player.breath || "water", "breathingStyle");
-                this.client.playerDb.db.delete(id, "breath");
-                this.client.playerDb.db.delete(id, "category");
-                this.client.playerDb.db.delete(id, "categoryLevel");
+                this.client.playerDb.ensureInDeep(id);
+                dbs.a.set(id, player.started, "started");
+                dbs.a.set(id, player.id, "id");
+                dbs.a.set(id, player.lang, "lang");
+                const stats = { strength: player.stats.strength, defense: player.stats.defense };
+                dbs.a.set(id, stats, "statistics");
+                dbs.a.set(id, player.breath || "water", "breathingStyle");
+                dbs.a.set(id, player.created || Date.now(), "creationDate");
             }
 
             dbs.b.destroy();
@@ -122,6 +107,9 @@ class SQLiteTableMerger {
         if (this.tables.includes("squadDb")) {
             const dbs = { a: new Enmap({ name: "squad" }), b: new Enmap({ name: "squadDb" }) };
             dbs.b.destroy();
+        }
+        if (this.tables.includes("internalServerManager")) {
+            new Enmap({ name: "internalServerManager" }).destroy();
         }
     }
 }
